@@ -72,7 +72,18 @@ def get_file_from_gdrive(cwd, folder, file_name_list, mimeType):
     for file_name in file_name_list:
         get_and_save_file(service, folder, file_name, mimeType)
 
+# 画像情報.xlsx
+file_name_list = ["画像情報.xlsx"]
+mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+# mimeType='application/vnd.ms-excel'
+get_file_from_gdrive(
+    cwd=cwd, 
+    folder='xlsx', 
+    file_name_list=file_name_list, 
+    mimeType=mimeType
+    )
 
+# 画像情報.xlsxのdf化
 df = pd.read_excel('./xlsx/画像情報.xlsx')
 
 with st.expander('画像情報', expanded=False):
@@ -136,6 +147,21 @@ if op_series_list2 == [all_option]:
 else:
     filtered_df = filtered_df[filtered_df["シリーズ"].isin(op_series_list2)]
 
+
+
+# LD別
+op_ld_list1 = filtered_df["LD別"].unique().tolist()
+op_ld_list1 = sorted(op_ld_list1)
+op_ld_list1 = [all_option] + op_series_list1
+op_ld_list2 = st.sidebar.multiselect(\
+    "LD別", op_ld_list1, default=[all_option]
+    )
+
+if op_ld_list2 == [all_option]:
+    filtered_df = filtered_df
+else:
+    filtered_df = filtered_df[filtered_df["LD別"].isin(op_ld_list2)]
+
 # 塗色
 op_woodcolor1_list1 = filtered_df["塗色"].unique().tolist()
 op_woodcolor1_list1 = sorted(op_woodcolor1_list1)
@@ -173,16 +199,7 @@ get_file_from_gdrive(
     mimeType=mimeType
     )
 
-# 画像情報.xlsx
-file_name_list = ["画像情報.xlsx"]
-mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-# mimeType='application/vnd.ms-excel'
-get_file_from_gdrive(
-    cwd=cwd, 
-    folder='xlsx', 
-    file_name_list=file_name_list, 
-    mimeType=mimeType
-    )
+
 
 # カラム設定
 col1, col2 = st.columns(2)
