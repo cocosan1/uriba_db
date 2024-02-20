@@ -152,7 +152,7 @@ else:
 # LD別
 op_ld_list1 = filtered_df["LD別"].unique().tolist()
 op_ld_list1 = sorted(op_ld_list1)
-op_ld_list1 = [all_option] + op_series_list1
+op_ld_list1 = [all_option] + op_ld_list1
 op_ld_list2 = st.sidebar.multiselect(\
     "LD別", op_ld_list1, default=[all_option]
     )
@@ -188,9 +188,16 @@ if op_fabric_list2 == [all_option]:
 else:
     filtered_df = filtered_df[filtered_df["張地"].isin(op_fabric_list2)]
 
+# 表示画像数の設定
+num_image = st.sidebar.number_input('画像の最大表示数を設定', value=10)
+st.write(f'最大画像表示数: {num_image}')
+
+# ファイルのunique化
+filtered_df2 = filtered_df.drop_duplicates(subset='ファイル名')
+
 ## driveからファイル取得dataに保存
 #画像ファイル
-file_name_list = filtered_df['ファイル名']
+file_name_list = filtered_df2['ファイル名']
 mimeType='image/jpeg'
 get_file_from_gdrive(
     cwd=cwd, 
@@ -199,22 +206,20 @@ get_file_from_gdrive(
     mimeType=mimeType
     )
 
-
-
 # カラム設定
 col1, col2 = st.columns(2)
 
 # 検索結果の画像を表示
-for i in range(len(filtered_df)):
-    image_path = os.path.join('img', filtered_df["ファイル名"].iloc[i])
+for i in range(len(filtered_df2)):
+    image_path = os.path.join('img', filtered_df2["ファイル名"].iloc[i])
     image = Image.open(image_path)
 
     # caption
-    shop_name = filtered_df["店舗名"].iloc[i]
-    series_name = filtered_df["シリーズ"].iloc[i]
-    wood_color = filtered_df["塗色"].iloc[i]
-    fabric_name = filtered_df["張地"].iloc[i]
-    file_name = filtered_df["ファイル名"].iloc[i]
+    shop_name = filtered_df2["店舗名"].iloc[i]
+    series_name = filtered_df2["シリーズ"].iloc[i]
+    wood_color = filtered_df2["塗色"].iloc[i]
+    fabric_name = filtered_df2["張地"].iloc[i]
+    file_name = filtered_df2["ファイル名"].iloc[i]
     text = f'{shop_name} {series_name} {wood_color} {fabric_name} {file_name}'
 
     # 偶数はcol1 奇数はcol2
@@ -229,5 +234,5 @@ for i in range(len(filtered_df)):
             st.image(image,caption=text)
     
     # 何枚でstopするか
-    if i == 10:
+    if i == num_image - 1:
         break
