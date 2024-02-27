@@ -107,6 +107,16 @@ if op_shopname_list2 == ['選択なし']:
 elif op_shopname_list2 == [all_option]:
     filtered_df = df
 
+    #画像ファイル
+    file_name_list = filtered_df['ファイル名'][:0]
+    mimeType='image/jpeg'
+    get_file_from_gdrive(
+        cwd=cwd, 
+        folder='img', 
+        file_name_list=file_name_list, 
+        mimeType=mimeType
+        )
+
 else:
     filtered_df = df[df["店舗名"].isin(op_shopname_list2)]
 
