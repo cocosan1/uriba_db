@@ -72,6 +72,53 @@ def get_file_from_gdrive(cwd, folder, file_name_list, mimeType):
     for file_name in file_name_list:
         get_and_save_file(service, folder, file_name, mimeType)
 
+# 画像表示の関数
+def display_img(filtered_df, num_image=11):
+    # ファイルのunique化
+    filtered_df2 = filtered_df.drop_duplicates(subset='ファイル名')
+
+    ## driveからファイル取得dataに保存
+    #画像ファイル
+    file_name_list = filtered_df2['ファイル名']
+    mimeType='image/jpeg'
+    get_file_from_gdrive(
+        cwd=cwd, 
+        folder='img', 
+        file_name_list=file_name_list, 
+        mimeType=mimeType
+        )
+
+    # カラム設定
+    col1, col2 = st.columns(2)
+
+    # 検索結果の画像を表示
+    for i in range(len(filtered_df2)):
+        image_path = os.path.join('img', filtered_df2["ファイル名"].iloc[i])
+        image = Image.open(image_path)
+
+        # caption
+        shop_name = filtered_df2["店舗名"].iloc[i]
+        series_name = filtered_df2["シリーズ"].iloc[i]
+        wood_color = filtered_df2["塗色"].iloc[i]
+        fabric_name = filtered_df2["張地"].iloc[i]
+        file_name = filtered_df2["ファイル名"].iloc[i]
+        text = f'{shop_name} {series_name} {wood_color} {fabric_name} {file_name}'
+
+        # 偶数はcol1 奇数はcol2
+        if i == 0:
+            with col1:
+                st.image(image,caption=text)
+        elif i % 2 == 0:
+            with col1:
+                st.image(image,caption=text)
+        else:
+            with col2:
+                st.image(image,caption=text)
+        
+        # 何枚でstopするか
+        if i == num_image - 1:
+            break
+
 # 画像情報.xlsx
 file_name_list = ["画像情報.xlsx"]
 mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -107,15 +154,11 @@ if op_shopname_list2 == ['選択なし']:
 elif op_shopname_list2 == [all_option]:
     filtered_df = df
 
-    #画像ファイル
-    file_name_list = filtered_df['ファイル名'][:0]
-    mimeType='image/jpeg'
-    get_file_from_gdrive(
-        cwd=cwd, 
-        folder='img', 
-        file_name_list=file_name_list, 
-        mimeType=mimeType
-        )
+    # # 一旦1行目のみ表示
+    # temp_df = filtered_df[filtered_df.index==0]
+
+    # #画像の画面表示
+    # display_img(temp_df, num_image=2)
 
 else:
     filtered_df = df[df["店舗名"].isin(op_shopname_list2)]
@@ -202,47 +245,10 @@ else:
 num_image = st.sidebar.number_input('画像の最大表示数を設定', value=10)
 st.write(f'最大画像表示数: {num_image}')
 
-# ファイルのunique化
-filtered_df2 = filtered_df.drop_duplicates(subset='ファイル名')
+# 店舗を全選択した時にすべての画像を読み込まないように対策
+if len(filtered_df) == len(df):
+    st.info('項目を選択してください。')
+    st.stop()
+else:
+    display_img(filtered_df, num_image=num_image)
 
-## driveからファイル取得dataに保存
-#画像ファイル
-file_name_list = filtered_df2['ファイル名']
-mimeType='image/jpeg'
-get_file_from_gdrive(
-    cwd=cwd, 
-    folder='img', 
-    file_name_list=file_name_list, 
-    mimeType=mimeType
-    )
-
-# カラム設定
-col1, col2 = st.columns(2)
-
-# 検索結果の画像を表示
-for i in range(len(filtered_df2)):
-    image_path = os.path.join('img', filtered_df2["ファイル名"].iloc[i])
-    image = Image.open(image_path)
-
-    # caption
-    shop_name = filtered_df2["店舗名"].iloc[i]
-    series_name = filtered_df2["シリーズ"].iloc[i]
-    wood_color = filtered_df2["塗色"].iloc[i]
-    fabric_name = filtered_df2["張地"].iloc[i]
-    file_name = filtered_df2["ファイル名"].iloc[i]
-    text = f'{shop_name} {series_name} {wood_color} {fabric_name} {file_name}'
-
-    # 偶数はcol1 奇数はcol2
-    if i == 0:
-        with col1:
-            st.image(image,caption=text)
-    elif i % 2 == 0:
-        with col1:
-            st.image(image,caption=text)
-    else:
-        with col2:
-            st.image(image,caption=text)
-    
-    # 何枚でstopするか
-    if i == num_image - 1:
-        break
